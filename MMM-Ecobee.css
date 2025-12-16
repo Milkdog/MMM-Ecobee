@@ -111,6 +111,11 @@
 	color: #22c55e;
 }
 
+.MMM-Ecobee .status-indicator.off {
+	background: rgba(255, 255, 255, 0.05);
+	color: #666;
+}
+
 /* Details row - set temp and humidity */
 .MMM-Ecobee .details-row {
 	display: flex;

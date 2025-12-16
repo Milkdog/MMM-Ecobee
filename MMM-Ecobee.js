@@ -146,10 +146,13 @@ Module.register("MMM-Ecobee", {
 
         var status = document.createElement("span");
         status.className = "status-indicator";
-        // Show ON when equipment is actively running (heating or cooling)
+        // Show ON when equipment is actively running, OFF when system is off, IDLE otherwise
         if (isActivelyHeating || isActivelyCooling) {
           status.classList.add("on");
           status.textContent = "ON";
+        } else if (hvacMode === "off") {
+          status.classList.add("off");
+          status.textContent = "OFF";
         } else {
           status.textContent = "IDLE";
         }
