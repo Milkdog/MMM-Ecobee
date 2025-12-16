@@ -2,6 +2,15 @@
 
 Module for MagicMirror² that supports ecobee thermostats.
 
+## Features
+
+- **Card-based UI** - Modern card layout for each thermostat
+- **Active status indication** - Card border glows orange (heating) or blue (cooling) when equipment is actively running
+- **Status indicator** - Shows ON (actively running), IDLE (system ready but not running), or OFF (system disabled)
+- **Remote sensors** - Displays temperature and occupancy for each remote sensor
+- **Humidity display** - Shows current humidity level
+- **Set temperature** - Shows target temperature based on current mode
+
 ## Dependencies
 
 * An installation of [MagicMirror²](https://github.com/MichMich/MagicMirror)
@@ -48,6 +57,3 @@ See the [Installation](#installation) section above for notes about how authoriz
 | `showHumidity` | `true` | If true, will show current humidity for a thermostat, if available. |
 | `showSetTemperature` | `true` | If true, will show the temperature a thermostat is set to cool/heat to. |
 
-## Screenshot
-
-![Screenshot](/sample.png?raw=true)
