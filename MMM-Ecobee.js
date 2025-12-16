@@ -17,41 +17,47 @@ Module.register("MMM-Ecobee", {
   },
 
   getDom() {
-    var wrapper = document.createElement("table");
-    wrapper.className = "small dimmed";
+    var wrapper = document.createElement("div");
 
     if (this.tempData.length === 0) {
       if (this.pin) {
-        wrapper.innerHTML =
-          "These are the steps authorize this application to access your Ecobee:" +
-          "<ol style='text-align: left'>" +
-          "<li> Go to <a href='https://auth.ecobee.com/u/login'>https://auth.ecobee.com/u/login</a>" +
-          "<li> Login to your thermostat console" +
-          "<li> Select 'MY APPS' from the menu on the top right." +
-          "<li> Click 'Add Application'" +
-          "<li> Enter the following authorization code: <b>" + this.pin + "</b>" +
+        var authDiv = document.createElement("div");
+        authDiv.className = "auth-instructions";
+        authDiv.innerHTML =
+          "To authorize this application to access your Ecobee:" +
+          "<ol>" +
+          "<li>Go to <a href='https://auth.ecobee.com/u/login'>auth.ecobee.com</a></li>" +
+          "<li>Login to your thermostat console</li>" +
+          "<li>Select 'MY APPS' from the menu</li>" +
+          "<li>Click 'Add Application'</li>" +
+          "<li>Enter code: <b>" + this.pin + "</b></li>" +
           "</ol>";
+        wrapper.appendChild(authDiv);
       } else {
-        wrapper.innerHTML = "<img src='" + this.file("images/loading.gif") + "' width=100>";
+        var loadingDiv = document.createElement("div");
+        loadingDiv.className = "loading";
+        loadingDiv.innerHTML = "<img src='" + this.file("images/loading.gif") + "' width=100>";
+        wrapper.appendChild(loadingDiv);
       }
     } else {
       for (var e in this.tempData.thermostatList) {
         var thermo = this.tempData.thermostatList[e];
-
         var hvacMode = thermo.settings.hvacMode;
         var desiredHeat = this.getTemperature(thermo, thermo.runtime.desiredHeat);
         var desiredCool = this.getTemperature(thermo, thermo.runtime.desiredCool);
 
+        // Find thermostat device for main display
+        var thermoDevice = null;
+        var thermoTemp = null;
+        var thermoHumidity = null;
+        var sensors = [];
+
         for (var x in thermo.remoteSensors) {
           var device = thermo.remoteSensors[x];
-
-          if (!this.config.showSensors && device.type !== "thermostat") {
-            continue;
-          }
-
           var capTemperature = null;
           var capHumidity = null;
           var capOccupancy = null;
+
           for (var cap in device.capability) {
             if (device.capability[cap].type === "temperature") {
               capTemperature = device.capability[cap];
@@ -62,84 +68,169 @@ Module.register("MMM-Ecobee", {
             }
           }
 
-          var eventWrapper = document.createElement("tr");
-          eventWrapper.className = "normal";
-
-          var symbolWrapper = document.createElement("td");
-          symbolWrapper.className = "icon";
           if (device.type === "thermostat") {
-            symbolWrapper.appendChild(this.getThermostatSVG(device.inUse));
-          } else {
-            if (capOccupancy) {
-              symbolWrapper.appendChild(this.getSensorSVG(capOccupancy.value === "true", device.inUse));
+            thermoDevice = device;
+            if (capTemperature) {
+              thermoTemp = this.getTemperature(thermo, capTemperature.value);
             }
-          }
-          eventWrapper.appendChild(symbolWrapper);
-
-          var titleWrapper = document.createElement("td");
-          titleWrapper.innerHTML = device.name;
-          titleWrapper.className = "title";
-          eventWrapper.appendChild(titleWrapper);
-
-          var currentLogo = document.createElement("td");
-          currentLogo.className = "heat logo align-left";
-          var currentLogoIcon = document.createElement("i");
-          currentLogoIcon.classList = ["fas fa-thermometer-half"];
-          currentLogo.appendChild(currentLogoIcon);
-          eventWrapper.appendChild(currentLogo);
-
-          var currentTemp = document.createElement("td");
-          if (capTemperature) {
-            currentTemp.className = "current_temp";
-            currentTemp.innerHTML = this.getTemperature(thermo, capTemperature.value);
-          }
-          eventWrapper.appendChild(currentTemp);
-
-          if (device.type === "thermostat") {
-            if (this.config.showSetTemperature) {
-              var programLogo = document.createElement("td");
-              programLogo.className = "program logo align-center";
-
-              var temperatureToDisplay = "";
-              switch (hvacMode) {
-                case "cool":
-                  temperatureToDisplay = desiredCool;
-                  programLogo.appendChild(this.getColdSVG());
-                  break;
-                case "heat":
-                  temperatureToDisplay = desiredHeat;
-                  programLogo.appendChild(this.getHeatSVG());
-                  break;
-                case "auto":
-                  temperatureToDisplay = desiredCool + " - " + desiredHeat;
-                  programLogo.appendChild(this.getAutoSVG());
-                  break;
-              }
-              eventWrapper.appendChild(programLogo);
-
-              var currentProgram = document.createElement("td");
-              currentProgram.className = "current_program";
-              currentProgram.innerHTML = temperatureToDisplay;
-              eventWrapper.appendChild(currentProgram);
+            if (capHumidity) {
+              thermoHumidity = capHumidity.value;
             }
-
-            if (this.config.showHumidity) {
-              var humLogo = document.createElement("td");
-              humLogo.className = "program logo align-right";
-              humLogo.appendChild(this.getHumiditySVG());
-              eventWrapper.appendChild(humLogo);
-
-              var currentHum = document.createElement("td");
-              if (capHumidity) {
-                currentHum.className = "current Humidity align-left";
-                currentHum.innerHTML = capHumidity.value + "%";
-              }
-              eventWrapper.appendChild(currentHum);
-            }
+          } else if (this.config.showSensors) {
+            sensors.push({
+              name: device.name,
+              temp: capTemperature ? this.getTemperature(thermo, capTemperature.value) : null,
+              occupied: capOccupancy ? capOccupancy.value === "true" : false,
+              inUse: device.inUse
+            });
           }
-
-          wrapper.appendChild(eventWrapper);
         }
+
+        // Create thermostat card
+        var card = document.createElement("div");
+        card.className = "thermostat-card " + hvacMode;
+
+        // Main content area (two columns)
+        var mainContent = document.createElement("div");
+        mainContent.className = "main-content";
+
+        // Left column - large temperature
+        var tempDisplay = document.createElement("div");
+        tempDisplay.className = "temperature-display";
+        tempDisplay.textContent = thermoTemp !== null ? thermoTemp + "\u00B0" : "--";
+        mainContent.appendChild(tempDisplay);
+
+        // Right column - info stack
+        var infoStack = document.createElement("div");
+        infoStack.className = "info-stack";
+
+        // Name row
+        var nameRow = document.createElement("div");
+        nameRow.className = "name-row";
+        var name = document.createElement("span");
+        name.className = "thermostat-name";
+        name.textContent = thermoDevice ? thermoDevice.name : thermo.name;
+        nameRow.appendChild(name);
+        infoStack.appendChild(nameRow);
+
+        // Status row (mode icon + ON/OFF)
+        var statusRow = document.createElement("div");
+        statusRow.className = "status-row";
+
+        var modeIcon = document.createElement("i");
+        modeIcon.className = "mode-icon " + hvacMode + " fas ";
+        switch (hvacMode) {
+          case "cool":
+            modeIcon.classList.add("fa-snowflake");
+            break;
+          case "heat":
+            modeIcon.classList.add("fa-fire");
+            break;
+          case "auto":
+            modeIcon.classList.add("fa-sliders-h");
+            break;
+        }
+        statusRow.appendChild(modeIcon);
+
+        var status = document.createElement("span");
+        status.className = "status-indicator";
+        if (thermoDevice && thermoDevice.inUse) {
+          status.classList.add("on");
+          status.textContent = "ON";
+        } else {
+          status.textContent = "OFF";
+        }
+        statusRow.appendChild(status);
+        infoStack.appendChild(statusRow);
+
+        // Set temp and humidity row
+        if (this.config.showSetTemperature || this.config.showHumidity) {
+          var detailsRow = document.createElement("div");
+          detailsRow.className = "details-row";
+
+          if (this.config.showSetTemperature) {
+            var setTemp = document.createElement("span");
+            setTemp.className = "set-temp " + hvacMode;
+
+            var setTempIcon = document.createElement("i");
+            setTempIcon.className = "fas ";
+            switch (hvacMode) {
+              case "cool":
+                setTempIcon.classList.add("fa-snowflake");
+                setTemp.appendChild(setTempIcon);
+                setTemp.appendChild(document.createTextNode(" " + desiredCool + "\u00B0"));
+                break;
+              case "heat":
+                setTempIcon.classList.add("fa-fire");
+                setTemp.appendChild(setTempIcon);
+                setTemp.appendChild(document.createTextNode(" " + desiredHeat + "\u00B0"));
+                break;
+              case "auto":
+                setTempIcon.classList.add("fa-sliders-h");
+                setTemp.appendChild(setTempIcon);
+                setTemp.appendChild(document.createTextNode(" " + desiredHeat + "\u00B0-" + desiredCool + "\u00B0"));
+                break;
+            }
+            detailsRow.appendChild(setTemp);
+          }
+
+          if (this.config.showHumidity && thermoHumidity !== null) {
+            var humidity = document.createElement("span");
+            humidity.className = "humidity";
+            var humIcon = document.createElement("i");
+            humIcon.className = "fas fa-droplet";
+            humidity.appendChild(humIcon);
+            humidity.appendChild(document.createTextNode(" " + thermoHumidity + "%"));
+            detailsRow.appendChild(humidity);
+          }
+
+          infoStack.appendChild(detailsRow);
+        }
+
+        mainContent.appendChild(infoStack);
+        card.appendChild(mainContent);
+
+        // Sensors section
+        if (this.config.showSensors && sensors.length > 0) {
+          var sensorsSection = document.createElement("div");
+          sensorsSection.className = "sensors-section";
+
+          for (var s = 0; s < sensors.length; s++) {
+            var sensor = sensors[s];
+            var sensorCard = document.createElement("div");
+            sensorCard.className = "sensor-card";
+            if (!sensor.inUse) {
+              sensorCard.classList.add("inactive");
+            }
+
+            var sensorName = document.createElement("div");
+            sensorName.className = "sensor-name";
+            sensorName.textContent = sensor.name;
+            sensorCard.appendChild(sensorName);
+
+            var sensorInfo = document.createElement("div");
+            sensorInfo.className = "sensor-info";
+
+            var sensorTemp = document.createElement("span");
+            sensorTemp.className = "sensor-temp";
+            sensorTemp.textContent = sensor.temp !== null ? sensor.temp + "\u00B0" : "--";
+            sensorInfo.appendChild(sensorTemp);
+
+            var occupancy = document.createElement("span");
+            occupancy.className = "occupancy-indicator";
+            if (sensor.occupied) {
+              occupancy.classList.add("occupied");
+            }
+            sensorInfo.appendChild(occupancy);
+
+            sensorCard.appendChild(sensorInfo);
+            sensorsSection.appendChild(sensorCard);
+          }
+
+          card.appendChild(sensorsSection);
+        }
+
+        wrapper.appendChild(card);
       }
     }
 

@@ -1,41 +1,231 @@
-.MMM-Ecobee .icon {
-  padding-left: 0;
-  padding-right: 15px;
-  align-items: left;
+/* MMM-Ecobee Card-Based UI */
+
+.MMM-Ecobee {
+	--card-bg: rgba(255, 255, 255, 0.05);
+	--card-radius: 10px;
+	--card-padding: 0.75rem;
+	--heat-color: #F99B1F;
+	--cool-color: #36C3EA;
+	--sensor-bg: rgba(255, 255, 255, 0.08);
+	--sensor-radius: 6px;
+	--transition-speed: 0.3s;
 }
 
-.MMM-Ecobee .header {
-  border-bottom: none; /* instead of 1px solid #666; to remove all lines from all the headers */
-  width: 50%;          /* add this to change the width of all module headers */
+/* Main thermostat card */
+.MMM-Ecobee .thermostat-card {
+	background: var(--card-bg);
+	border-radius: var(--card-radius);
+	padding: var(--card-padding);
+	border: 2px solid transparent;
+	transition: border-color var(--transition-speed), box-shadow var(--transition-speed);
 }
 
-.MMM-Ecobee .current_temp{
-  padding-right: 5px;
+.MMM-Ecobee .thermostat-card.heat {
+	border-color: var(--heat-color);
+	box-shadow: 0 0 12px rgba(249, 155, 31, 0.25);
 }
 
-.MMM-Ecobee svg {
-  stroke: #999;
-  fill: none;
-  height: 30px;
+.MMM-Ecobee .thermostat-card.cool {
+	border-color: var(--cool-color);
+	box-shadow: 0 0 12px rgba(54, 195, 234, 0.25);
 }
 
-.MMM-Ecobee svg text {
-  stroke: none;
-  fill: #999;
+.MMM-Ecobee .thermostat-card.auto {
+	border-color: #9966cc;
+	box-shadow: 0 0 12px rgba(153, 102, 204, 0.25);
 }
 
-.MMM-Ecobee .stroke-no-motion {
-  stroke: none;
+/* Main content - two column layout */
+.MMM-Ecobee .main-content {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
 }
 
-.MMM-Ecobee .stroke-heat-color {
-  stroke: #F99B1F;
+/* Left column - large temperature */
+.MMM-Ecobee .temperature-display {
+	font-size: 3rem;
+	font-weight: 300;
+	color: var(--color-text-bright, #fff);
+	line-height: 1;
+	flex: 1;
+	text-align: center;
 }
 
-.MMM-Ecobee .stroke-cool-color {
-  stroke: #36C3EA;
+/* Right column - info stack */
+.MMM-Ecobee .info-stack {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-end;
+	gap: 0.2rem;
 }
 
-.MMM-Ecobee .stroke-thermostat-color {
-  stroke: #D28DE0;
+.MMM-Ecobee .name-row {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+}
+
+.MMM-Ecobee .thermostat-name {
+	font-size: 1rem;
+	font-weight: bold;
+	color: var(--color-text-bright, #fff);
+}
+
+/* Status row */
+.MMM-Ecobee .status-row {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 0.4rem;
+	font-size: 0.85rem;
+}
+
+.MMM-Ecobee .mode-icon {
+	font-size: 0.9rem;
+}
+
+.MMM-Ecobee .mode-icon.heat {
+	color: var(--heat-color);
+}
+
+.MMM-Ecobee .mode-icon.cool {
+	color: var(--cool-color);
+}
+
+.MMM-Ecobee .mode-icon.auto {
+	color: #9966cc;
+}
+
+.MMM-Ecobee .status-indicator {
+	font-size: 0.65rem;
+	padding: 0.1rem 0.35rem;
+	border-radius: 3px;
+	background: rgba(255, 255, 255, 0.1);
+	color: var(--color-text-dimmed, #666);
+	text-transform: uppercase;
+}
+
+.MMM-Ecobee .status-indicator.on {
+	background: rgba(34, 197, 94, 0.2);
+	color: #22c55e;
+}
+
+/* Details row - set temp and humidity */
+.MMM-Ecobee .details-row {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 0.6rem;
+	font-size: 0.8rem;
+	color: var(--color-text, #999);
+}
+
+.MMM-Ecobee .set-temp,
+.MMM-Ecobee .humidity {
+	display: flex;
+	align-items: center;
+	gap: 0.25rem;
+}
+
+.MMM-Ecobee .set-temp.heat {
+	color: var(--heat-color);
+}
+
+.MMM-Ecobee .set-temp.cool {
+	color: var(--cool-color);
+}
+
+.MMM-Ecobee .set-temp.auto {
+	color: #9966cc;
+}
+
+.MMM-Ecobee .humidity i {
+	color: var(--cool-color);
+}
+
+/* Sensors section */
+.MMM-Ecobee .sensors-section {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.4rem;
+	margin-top: 0.6rem;
+	padding-top: 0.6rem;
+	border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.MMM-Ecobee .sensor-card {
+	background: var(--sensor-bg);
+	border-radius: var(--sensor-radius);
+	padding: 0.35rem 0.5rem;
+	min-width: 60px;
+	text-align: center;
+}
+
+.MMM-Ecobee .sensor-card.inactive {
+	opacity: 0.5;
+}
+
+.MMM-Ecobee .sensor-name {
+	font-size: 0.6rem;
+	color: #bbb;
+	margin-bottom: 0.1rem;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.MMM-Ecobee .sensor-info {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.25rem;
+}
+
+.MMM-Ecobee .sensor-temp {
+	font-size: 0.9rem;
+	font-weight: bold;
+	color: var(--color-text-bright, #fff);
+}
+
+.MMM-Ecobee .occupancy-indicator {
+	width: 6px;
+	height: 6px;
+	border-radius: 50%;
+	background: var(--color-text-dimmed, #666);
+}
+
+.MMM-Ecobee .occupancy-indicator.occupied {
+	background: #22c55e;
+	box-shadow: 0 0 4px rgba(34, 197, 94, 0.5);
+}
+
+/* Authorization PIN display */
+.MMM-Ecobee .auth-instructions {
+	background: var(--card-bg);
+	border-radius: var(--card-radius);
+	padding: var(--card-padding);
+	max-width: 350px;
+	font-size: 0.85rem;
+}
+
+.MMM-Ecobee .auth-instructions ol {
+	text-align: left;
+	margin: 0.4rem 0;
+	padding-left: 1.25rem;
+}
+
+.MMM-Ecobee .auth-instructions li {
+	margin: 0.35rem 0;
+}
+
+.MMM-Ecobee .auth-instructions b {
+	color: var(--color-text-bright, #fff);
+	font-size: 1.1rem;
+}
+
+/* Loading state */
+.MMM-Ecobee .loading {
+	text-align: center;
+	padding: 0.75rem;
 }
