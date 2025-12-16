@@ -71,7 +71,8 @@ module.exports = NodeHelper.create({
             includeRuntime: "true",
             includeSettings: true,
             selectionMatch: "",
-            includeSensors: true
+            includeSensors: true,
+            includeEquipmentStatus: true
           }
         })
       }), "GET", true);

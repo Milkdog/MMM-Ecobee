@@ -46,6 +46,11 @@ Module.register("MMM-Ecobee", {
         var desiredHeat = this.getTemperature(thermo, thermo.runtime.desiredHeat);
         var desiredCool = this.getTemperature(thermo, thermo.runtime.desiredCool);
 
+        // Check equipmentStatus for active heating/cooling
+        var equipmentStatus = thermo.equipmentStatus || "";
+        var isActivelyHeating = /heat|auxHeat/i.test(equipmentStatus);
+        var isActivelyCooling = /compCool|cool/i.test(equipmentStatus);
+
         // Find thermostat device for main display
         var thermoDevice = null;
         var thermoTemp = null;
@@ -87,8 +92,15 @@ Module.register("MMM-Ecobee", {
         }
 
         // Create thermostat card
+        // Only apply color class when equipment is actively running
         var card = document.createElement("div");
-        card.className = "thermostat-card " + hvacMode;
+        var cardClass = "thermostat-card";
+        if (isActivelyHeating) {
+          cardClass += " heat";
+        } else if (isActivelyCooling) {
+          cardClass += " cool";
+        }
+        card.className = cardClass;
 
         // Main content area (two columns)
         var mainContent = document.createElement("div");
@@ -134,11 +146,12 @@ Module.register("MMM-Ecobee", {
 
         var status = document.createElement("span");
         status.className = "status-indicator";
-        if (thermoDevice && thermoDevice.inUse) {
+        // Show ON when equipment is actively running (heating or cooling)
+        if (isActivelyHeating || isActivelyCooling) {
           status.classList.add("on");
           status.textContent = "ON";
         } else {
-          status.textContent = "OFF";
+          status.textContent = "IDLE";
         }
         statusRow.appendChild(status);
         infoStack.appendChild(statusRow);
